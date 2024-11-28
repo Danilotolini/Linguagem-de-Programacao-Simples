@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-explicit-any
 import {
   AssignmentExpr,
   BinaryExpr,
@@ -21,14 +20,14 @@ export default class Parser {
   private tokens: Token[] = [];
 
   /*
-   * Determina se a análise está completa e o END OF FILE está completo
+   * Determina se a análise está completa e o FIM DE ARQUIVO está completo
    */
   private not_eof(): boolean {
-    return this.tokens[0].type != TokenType.EOF;
+    return this.tokens[0].type != TokenType.FimArquivo;
   }
 
   /**
-   * Retorna o atual token disponível
+   * Retorna o token atual disponível
    */
   private at() {
     return this.tokens[0] as Token;
@@ -43,12 +42,12 @@ export default class Parser {
   }
 
   /**
-   * Verifica o tipo do token experado e lança uma exceção se o valor não combina
+   * Verifica o tipo do token esperado e lança uma exceção se o valor não combina
    */
   private expect(type: TokenType, err: any) {
     const prev = this.tokens.shift() as Token;
     if (!prev || prev.type != type) {
-      console.error("Parser Error:\n", err, prev, " - Expecting: ", type);
+      console.error("Erro no Parser:\n", err, prev, " - Esperado: ", type);
       Deno.exit(1);
     }
 
@@ -71,10 +70,10 @@ export default class Parser {
 
   private parse_stmt(): Stmt {
     switch (this.at().type) {
-      case TokenType.Let:
-      case TokenType.Const:
+      case TokenType.Variavel:
+      case TokenType.Constante:
         return this.parse_var_declaration();
-      case TokenType.Fn:
+      case TokenType.Funcao:
         return this.parse_fn_declaration();
       default:
         return this.parse_expr();
@@ -84,8 +83,8 @@ export default class Parser {
   parse_fn_declaration(): Stmt {
     this.eat();
     const name = this.expect(
-      TokenType.Identifier,
-      "Expected function name following fn keyword"
+      TokenType.Identificador,
+      "Esperado o nome da função após a palavra-chave funcao"
     ).value;
 
     const args = this.parse_args();
@@ -93,28 +92,28 @@ export default class Parser {
     for (const arg of args) {
       if (arg.kind !== "Identifier") {
         console.log(arg);
-        throw "Inside function declaration expected parameters to be of type string.";
+        throw "Dentro da declaração de função, esperados parâmetros do tipo string.";
       }
 
       params.push((arg as Identifier).symbol);
     }
 
     this.expect(
-      TokenType.OpenBrace,
-      "Expected function body following declaration"
+      TokenType.AbreChave,
+      "Esperado o corpo da função após a declaração"
     );
     const body: Stmt[] = [];
 
     while (
-      this.at().type !== TokenType.EOF &&
-      this.at().type !== TokenType.CloseBrace
+      this.at().type !== TokenType.FimArquivo &&
+      this.at().type !== TokenType.FechaChave
     ) {
       body.push(this.parse_stmt());
     }
 
     this.expect(
-      TokenType.CloseBrace,
-      "Closing brace expected inside function declaration"
+      TokenType.FechaChave,
+      "Chave de fechamento esperada dentro da declaração da função"
     );
 
     const fn = {
@@ -128,16 +127,16 @@ export default class Parser {
   }
 
   parse_var_declaration(): Stmt {
-    const isConstant = this.eat().type == TokenType.Const;
+    const isConstant = this.eat().type == TokenType.Constante;
     const identifier = this.expect(
-      TokenType.Identifier,
-      "Expected identifier name following let | const keywords."
+      TokenType.Identificador,
+      "Esperado nome do identificador após let | const."
     ).value;
 
-    if (this.at().type == TokenType.Semicolon) {
-      this.eat(); // expect semicolon
+    if (this.at().type == TokenType.PontoVirgula) {
+      this.eat(); // espera o ponto e vírgula
       if (isConstant) {
-        throw "Must assigne value to constant expression. No value provided.";
+        throw "Deve atribuir valor à expressão constante. Nenhum valor fornecido.";
       }
 
       return {
@@ -148,8 +147,8 @@ export default class Parser {
     }
 
     this.expect(
-      TokenType.Equals,
-      "Expected equals token following identifier in var declaration."
+      TokenType.Igual,
+      "Esperado token de igual após o identificador na declaração de variável."
     );
 
     const declaration = {
@@ -160,8 +159,8 @@ export default class Parser {
     } as VarDeclaration;
 
     this.expect(
-      TokenType.Semicolon,
-      "Variable declaration statment must end with semicolon."
+      TokenType.PontoVirgula,
+      "Declaração de variável deve terminar com ponto e vírgula."
     );
 
     return declaration;
@@ -174,7 +173,7 @@ export default class Parser {
   private parse_assignment_expr(): Expr {
     const left = this.parse_object_expr();
 
-    if (this.at().type == TokenType.Equals) {
+    if (this.at().type == TokenType.Igual) {
       this.eat();
       const value = this.parse_assignment_expr();
       return { value, assigne: left, kind: "AssignmentExpr" } as AssignmentExpr;
@@ -184,44 +183,44 @@ export default class Parser {
   }
 
   private parse_object_expr(): Expr {
-    if (this.at().type !== TokenType.OpenBrace) {
+    if (this.at().type !== TokenType.AbreChave) {
       return this.parse_additive_expr();
     }
 
     this.eat();
     const properties = new Array<Property>();
 
-    while (this.not_eof() && this.at().type != TokenType.CloseBrace) {
+    while (this.not_eof() && this.at().type != TokenType.FechaChave) {
       const key = this.expect(
-        TokenType.Identifier,
-        "Object literal key expected"
+        TokenType.Identificador,
+        "Esperada chave de literal de objeto"
       ).value;
 
-      if (this.at().type == TokenType.Comma) {
-        this.eat(); // advance past comma
+      if (this.at().type == TokenType.Virgula) {
+        this.eat(); // avança pela vírgula
         properties.push({ key, kind: "Property" } as Property);
         continue;
-      } else if (this.at().type == TokenType.CloseBrace) {
+      } else if (this.at().type == TokenType.FechaChave) {
         properties.push({ key, kind: "Property" });
         continue;
       }
 
       this.expect(
-        TokenType.Colon,
-        "Missing colon following identifier in ObjectExpr"
+        TokenType.DoisPontos,
+        "Faltando dois pontos após o identificador em ObjectExpr"
       );
       const value = this.parse_expr();
 
       properties.push({ kind: "Property", value, key });
-      if (this.at().type != TokenType.CloseBrace) {
+      if (this.at().type != TokenType.FechaChave) {
         this.expect(
-          TokenType.Comma,
-          "Expected comma or closing bracket following property"
+          TokenType.Virgula,
+          "Esperada vírgula ou chave de fechamento após propriedade"
         );
       }
     }
 
-    this.expect(TokenType.CloseBrace, "Object literal missing closing brace.");
+    this.expect(TokenType.FechaChave, "Literal de objeto sem chave de fechamento.");
     return { kind: "ObjectLiteral", properties } as ObjectLiteral;
   }
 
@@ -266,7 +265,7 @@ export default class Parser {
   private parse_call_member_expr(): Expr {
     const member = this.parse_member_expr();
 
-    if (this.at().type == TokenType.OpenParen) {
+    if (this.at().type == TokenType.AbreParenteses) {
       return this.parse_call_expr(member);
     }
 
@@ -280,7 +279,7 @@ export default class Parser {
       args: this.parse_args(),
     } as CallExpr;
 
-    if (this.at().type == TokenType.OpenParen) {
+    if (this.at().type == TokenType.AbreParenteses) {
       call_expr = this.parse_call_expr(call_expr);
     }
 
@@ -288,13 +287,13 @@ export default class Parser {
   }
 
   private parse_args(): Expr[] {
-    this.expect(TokenType.OpenParen, "Expected open parenthesis");
+    this.expect(TokenType.AbreParenteses, "Esperado parêntese de abertura");
     const args =
-      this.at().type == TokenType.CloseParen ? [] : this.parse_arguments_list();
+      this.at().type == TokenType.FechaParenteses ? [] : this.parse_arguments_list();
 
     this.expect(
-      TokenType.CloseParen,
-      "Missing closing parenthesis inside arguments list"
+      TokenType.FechaParenteses,
+      "Faltando parêntese de fechamento na lista de argumentos"
     );
     return args;
   }
@@ -302,7 +301,7 @@ export default class Parser {
   private parse_arguments_list(): Expr[] {
     const args = [this.parse_assignment_expr()];
 
-    while (this.at().type == TokenType.Comma && this.eat()) {
+    while (this.at().type == TokenType.Virgula && this.eat()) {
       args.push(this.parse_assignment_expr());
     }
 
@@ -313,25 +312,25 @@ export default class Parser {
     let object = this.parse_primary_expr();
 
     while (
-      this.at().type == TokenType.Dot ||
-      this.at().type == TokenType.OpenBracket
+      this.at().type == TokenType.Ponto ||
+      this.at().type == TokenType.AbreColchete
     ) {
       const operator = this.eat();
       let property: Expr;
       let computed: boolean;
 
-      if (operator.type == TokenType.Dot) {
+      if (operator.type == TokenType.Ponto) {
         computed = false;
         property = this.parse_primary_expr();
         if (property.kind != "Identifier") {
-          throw `Cannonot use dot operator without right hand side being a identifier`;
+          throw `Não é possível usar o operador ponto sem o lado direito ser um identificador`;
         }
       } else {
         computed = true;
         property = this.parse_expr();
         this.expect(
-          TokenType.CloseBracket,
-          "Missing closing bracket in computed value."
+          TokenType.FechaColchete,
+          "Faltando colchete de fechamento em valor computado."
         );
       }
 
@@ -350,20 +349,20 @@ export default class Parser {
     const tk = this.at().type;
 
     switch (tk) {
-      case TokenType.Identifier:
+      case TokenType.Identificador:
         return { kind: "Identifier", symbol: this.eat().value } as Identifier;
 
-      case TokenType.Number:
+      case TokenType.Numero:
         return {
           kind: "NumericLiteral",
           value: parseFloat(this.eat().value),
         } as NumericLiteral;
 
-      case TokenType.OpenParen: {
+      case TokenType.AbreParenteses: {
         this.eat(); // Consome a abertura de parênteses
         const value = this.parse_expr();
         this.expect(
-          TokenType.CloseParen,
+          TokenType.AbreParenteses,
           "Unexpected token found inside parenthesised expression. Expected closing parenthesis."
         ); // Fecha parênteses
         return value;

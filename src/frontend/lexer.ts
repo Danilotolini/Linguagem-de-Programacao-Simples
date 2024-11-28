@@ -1,42 +1,37 @@
 export enum TokenType {
-  // Palavras-chave
-  Let,
-  Const,
-  Fn, // Função
-
-  // Tipos Literais
-  Number, // Número
-  Identifier, // Identificador
-
-  // Agrupamento * Operadores
-  BinaryOperator, // "+", "-", "*", "/"
-  Equals, // =
-  Comma, // ,
-  Dot, // .
-  Colon, // :
-  Semicolon, // ;
-  OpenParen, // (
-  CloseParen, // )
-  OpenBrace, // {
-  CloseBrace, // }
-  OpenBracket, // [
-  CloseBracket, // ]
-  EOF, // End of file (Fim do arquivo)
+  Variavel,         // Variável
+  Constante,        // Constante
+  Funcao,           // Função
+  Numero,           // Número
+  Identificador,    // Identificador
+  OperadorBinario,  // Operador Binário
+  Igual,            // Igual
+  Virgula,          // Vírgula
+  Ponto,            // Ponto
+  DoisPontos,       // Dois Pontos
+  PontoVirgula,    // Ponto e Vírgula
+  AbreParenteses,   // Abre Parênteses
+  FechaParenteses,  // Fecha Parênteses
+  AbreChave,        // Abre Chave
+  FechaChave,       // Fecha Chave
+  AbreColchete,     // Abre Colchete
+  FechaColchete,    // Fecha Colchete
+  FimArquivo,       // Fim de Arquivo
 }
 
 /**
  * Constante para mapear palavras-chave e identificadores conhecidos + símbolos.
  */
 const KEYWORDS: Record<string, TokenType> = {
-  let: TokenType.Let,
-  const: TokenType.Const,
-  fn: TokenType.Fn,
+  variavel: TokenType.Variavel,
+  constante: TokenType.Constante,
+  funcao: TokenType.Funcao,
 };
 
-// Representa um único token gerado a partir do código fonte.
+// Representa um único token gerado a partir do código-fonte.
 export interface Token {
-  value: string; // contém o valor bruto como visto no código fonte.
-  type: TokenType; // estrutura tagueada.
+  value: string; 
+  type: TokenType; 
 }
 
 // Retorna um token de um dado tipo e valor
@@ -45,119 +40,88 @@ function token(value = "", type: TokenType): Token {
 }
 
 /**
- * Retorna se o caractere passado é alfabético -> [a-zA-Z]
+ * Retorna se o caractere passado é alfabético (letras e acentos inclusos).
  */
 function isalpha(src: string) {
-  return src.toUpperCase() != src.toLowerCase();
+  return /^[a-zA-ZáéíóúãõâêôçÁÉÍÓÚÃÕÂÊÔÇ]+$/.test(src);
 }
 
 /**
- * Retorna true se o caractere é um espaço em branco -> [\s, \t, \n]
+ * Retorna true se o caractere é um espaço em branco.
  */
 function isskippable(str: string) {
   return str == " " || str == "\n" || str == "\t" || str == "\r";
 }
 
 /**
- Retorna se o caractere é um número inteiro válido -> [0-9]
+ * Retorna se o caractere é um número inteiro válido.
  */
-
 function isint(str: string) {
   const c = str.charCodeAt(0);
-  const bounds = ["0".charCodeAt(0), "9".charCodeAt(0)];
-  return c >= bounds[0] && c <= bounds[1];
+  return c >= "0".charCodeAt(0) && c <= "9".charCodeAt(0);
 }
 
 /**
- * Dado uma string representando o código fonte: Produz tokens e lida
- * com possíveis caracteres não identificados.
- *
- * - Retorna um array de tokens.
- * - Não modifica a string de entrada.
+ * Dado uma string representando o código-fonte, produz tokens.
  */
 export function tokenize(sourceCode: string): Token[] {
   const tokens = new Array<Token>();
   const src = sourceCode.split("");
 
-  // Produz tokens até que o EOF seja alcançado.
   while (src.length > 0) {
-    // COMEÇA A ANALISAR TOKENS DE UM ÚNICO CARACTERE
     if (src[0] == "(") {
-      tokens.push(token(src.shift(), TokenType.OpenParen));
+      tokens.push(token(src.shift()!, TokenType.AbreParenteses));
     } else if (src[0] == ")") {
-      tokens.push(token(src.shift(), TokenType.CloseParen));
+      tokens.push(token(src.shift()!, TokenType.FechaParenteses));
     } else if (src[0] == "{") {
-      tokens.push(token(src.shift(), TokenType.OpenBrace));
+      tokens.push(token(src.shift()!, TokenType.AbreChave));
     } else if (src[0] == "}") {
-      tokens.push(token(src.shift(), TokenType.CloseBrace));
+      tokens.push(token(src.shift()!, TokenType.FechaChave));
     } else if (src[0] == "[") {
-      tokens.push(token(src.shift(), TokenType.OpenBracket));
+      tokens.push(token(src.shift()!, TokenType.AbreColchete));
     } else if (src[0] == "]") {
-      tokens.push(token(src.shift(), TokenType.CloseBracket));
-    } // LIDA COM OPERADORES BINÁRIOS
-    else if (
-      src[0] == "+" ||
-      src[0] == "-" ||
-      src[0] == "*" ||
-      src[0] == "/" ||
-      src[0] == "%"
-    ) {
-      tokens.push(token(src.shift(), TokenType.BinaryOperator));
-    } // Lida com tokens condicionais e de atribuição
-    else if (src[0] == "=") {
-      tokens.push(token(src.shift(), TokenType.Equals));
+      tokens.push(token(src.shift()!, TokenType.FechaColchete));
+    } else if ("+-*/%".includes(src[0])) {
+      tokens.push(token(src.shift()!, TokenType.OperadorBinario));
+    } else if (src[0] == "=") {
+      tokens.push(token(src.shift()!, TokenType.Igual));
     } else if (src[0] == ";") {
-      tokens.push(token(src.shift(), TokenType.Semicolon));
+      tokens.push(token(src.shift()!, TokenType.PontoVirgula));
     } else if (src[0] == ":") {
-      tokens.push(token(src.shift(), TokenType.Colon));
+      tokens.push(token(src.shift()!, TokenType.DoisPontos));
     } else if (src[0] == ",") {
-      tokens.push(token(src.shift(), TokenType.Comma));
+      tokens.push(token(src.shift()!, TokenType.Virgula));
     } else if (src[0] == ".") {
-      tokens.push(token(src.shift(), TokenType.Dot));
-    } // LIDA COM PALAVRAS-CHAVE, TOKENS E IDENTIFICADORES MULTICARACTERE...
-    else {
-      // Lida com literais numéricos -> Inteiros
-      if (isint(src[0])) {
-        let num = "";
-        while (src.length > 0 && isint(src[0])) {
-          num += src.shift();
-        }
-
-        // Adiciona um novo token numérico.
-        tokens.push(token(num, TokenType.Number));
-      } // Lida com identificadores e tokens de palavras-chave.
-      else if (isalpha(src[0])) {
-        let ident = "";
-        while (src.length > 0 && isalpha(src[0])) {
-          ident += src.shift();
-        }
-
-        // VERIFICA PALAVRAS-CHAVE RESERVADAS
-        const reserved = KEYWORDS[ident];
-        // Se o valor não for undefined, o identificador é uma
-        // palavra-chave reconhecida
-        if (typeof reserved == "number") {
-          tokens.push(token(ident, reserved));
-        } else {
-          // Nome não reconhecido deve ser um símbolo definido pelo usuário.
-          tokens.push(token(ident, TokenType.Identifier));
-        }
-      } else if (isskippable(src[0])) {
-        // Ignora caracteres desnecessários.
-        src.shift();
-      } // Lida com caracteres não reconhecidos.
-      // TODO: Implementar melhores erros e recuperação de erros.
-      else {
-        console.error(
-          "Caractere não reconhecido encontrado no código fonte: ",
-          src[0].charCodeAt(0),
-          src[0]
-        );
-        Deno.exit(1);
+      tokens.push(token(src.shift()!, TokenType.Ponto));
+    } else if (isint(src[0])) {
+      let num = "";
+      while (src.length > 0 && isint(src[0])) {
+        num += src.shift();
       }
+      tokens.push(token(num, TokenType.Numero));
+    } else if (isalpha(src[0])) {
+      let ident = "";
+      while (src.length > 0 && isalpha(src[0])) {
+        ident += src.shift();
+      }
+      const reserved = KEYWORDS[ident];
+      if (typeof reserved == "number") {
+        tokens.push(token(ident, reserved));
+      } else {
+        tokens.push(token(ident, TokenType.Identificador));
+      }
+    } else if (isskippable(src[0])) {
+      src.shift();
+    } else {
+      console.error(
+        "Caractere não reconhecido: ",
+        src[0].charCodeAt(0),
+        src[0]
+      );
+      src.shift();
     }
   }
 
-  tokens.push({ type: TokenType.EOF, value: "EndOfFile" });
+  tokens.push({ type: TokenType.FimArquivo, value: "FimDoArquivo" });
   return tokens;
 }

@@ -1,5 +1,4 @@
-fn multiplicar(x, y) {
+funcao multiplicar(x, y) {
   x * y
 }
-
 multiplicar(5, 10)
