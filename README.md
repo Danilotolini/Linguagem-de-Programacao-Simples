@@ -1,8 +1,8 @@
-# Simple Programming Language (SPL)  
+# Linguagem de Programação  
 
 ## Sobre o Projeto  
 
-O **Simple Programming Language (SPL)** é uma linguagem de programação didática, desenvolvida em **TypeScript** e executada no ambiente **Deno**. O objetivo é mostrar como os principais elementos de uma linguagem de programação — como análise léxica, análise sintática e interpretação — trabalham em conjunto para executar código.  
+Uma linguagem de programação didática, desenvolvida em **TypeScript** e executada no ambiente **Deno**. O objetivo é mostrar como os principais elementos de uma linguagem de programação — como análise léxica, análise sintática e interpretação — trabalham em conjunto para executar código.  
 
 ---  
 
