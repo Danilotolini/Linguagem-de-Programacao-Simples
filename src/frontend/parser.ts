@@ -132,39 +132,44 @@ export default class Parser {
       TokenType.Identificador,
       "Esperado nome do identificador após let | const."
     ).value;
-
+  
+    console.log("Após identificar a variável:", identifier); // Adicionar log
+  
+    // Verificar se o próximo token é um ponto e vírgula
     if (this.at().type == TokenType.PontoVirgula) {
-      this.eat(); // espera o ponto e vírgula
+      console.log("Encontrado ponto e vírgula após a variável."); // Adicionar log
+      this.eat(); // Consome o ponto e vírgula
       if (isConstant) {
         throw "Deve atribuir valor à expressão constante. Nenhum valor fornecido.";
       }
-
+  
       return {
         kind: "VarDeclaration",
         identifier,
         constant: false,
       } as VarDeclaration;
     }
-
+  
     this.expect(
       TokenType.Igual,
       "Esperado token de igual após o identificador na declaração de variável."
     );
-
+  
     const declaration = {
       kind: "VarDeclaration",
-      value: this.parse_expr(),
+      value: this.parse_expr(), // Espera uma expressão aqui
       identifier,
       constant: isConstant,
     } as VarDeclaration;
-
+  
     this.expect(
       TokenType.PontoVirgula,
       "Declaração de variável deve terminar com ponto e vírgula."
     );
-
+  
     return declaration;
   }
+  
 
   private parse_expr(): Expr {
     return this.parse_assignment_expr();
@@ -261,7 +266,23 @@ export default class Parser {
 
     return left;
   }
-
+  private parse_comparison_expr(): Expr {
+    let left = this.parse_additive_expr();
+  
+    if (this.at().value == "maiorigual" || this.at().value == "menorigual") {
+      const operator = this.eat().value;
+      const right = this.parse_additive_expr();
+      left = {
+        kind: "BinaryExpr",
+        left,
+        right,
+        operator,
+      } as BinaryExpr;
+    }
+  
+    return left;
+  }
+  
   private parse_call_member_expr(): Expr {
     const member = this.parse_member_expr();
 
@@ -344,34 +365,32 @@ export default class Parser {
 
     return object;
   }
-
   private parse_primary_expr(): Expr {
     const tk = this.at().type;
-
+  
     switch (tk) {
       case TokenType.Identificador:
         return { kind: "Identifier", symbol: this.eat().value } as Identifier;
-
+  
       case TokenType.Numero:
         return {
           kind: "NumericLiteral",
           value: parseFloat(this.eat().value),
         } as NumericLiteral;
-
+  
       case TokenType.AbreParenteses: {
-        this.eat(); // Consome a abertura de parênteses
-        const value = this.parse_expr();
+        this.eat(); // Consome o parêntese de abertura
+        const value = this.parse_expr(); // Analisa a expressão entre parênteses
         this.expect(
-          TokenType.AbreParenteses,
-          "Unexpected token found inside parenthesised expression. Expected closing parenthesis."
-        ); // Fecha parênteses
+          TokenType.FechaParenteses,
+          "Faltando parêntese de fechamento na expressão entre parênteses."
+        ); // Espera o parêntese de fechamento
         return value;
       }
-
-      // Tokens não identificados
+  
       default:
         console.error("Unexpected token found during parsing!", this.at());
         Deno.exit(1);
     }
-  }
+  }  
 }

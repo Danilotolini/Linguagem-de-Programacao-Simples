@@ -1,4 +1,3 @@
-funcao multiplicar(x, y) {
-  x * y
-}
-multiplicar(5, 10)
+variavel a = 5;
+variavel b = 10;
+variavel resultado = (a * a) + (b * b);

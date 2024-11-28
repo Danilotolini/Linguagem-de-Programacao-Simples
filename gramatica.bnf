@@ -1,38 +1,49 @@
-<program>         ::= <statement> | <statement> <program>
+<program> ::= <stmt>* <FimArquivo>
 
-<statement>       ::= <assignment> 
-                      | <expression> ";"
-                      | <if_statement>
-                      | <while_statement>
-                      | <print_statement>
+<stmt> ::= <var_declaration>
+        | <fn_declaration>
+        | <expr_stmt>
 
-<assignment>      ::= <name> "=" <expression> ";"
+<var_declaration> ::= "let" <identifier> "=" <expr> ";"
+                  | "const" <identifier> "=" <expr> ";"
+                  | "let" <identifier> ";"
+                  | "const" <identifier> ";"
 
-<if_statement>    ::= "se" <conditional> "então" <statement> ["senão" <statement>] [";"]
+<fn_declaration> ::= "fn" <identifier> "(" <arg_list> ")" "{" <stmt>* "}"
 
-<while_statement> ::= "enquanto" <conditional> "faça" <statement> [";"]
+<arg_list> ::= <identifier> ("," <identifier>)*
 
-<print_statement> ::= "imprimir" (<expression> | <string>) ";"
+<expr_stmt> ::= <expr> ";"
 
-<expression>      ::= <term> { ("+" | "-") <term> }
+<expr> ::= <assignment_expr>
+        | <binary_expr>
+        | <primary_expr>
 
-<term>            ::= <factor> { ("*" | "/") <factor> }
+<assignment_expr> ::= <identifier> "=" <expr>
 
-<factor>          ::= <number> 
-                      | <name> 
-                      | <string>
-                      | "(" <expression> ")"
+<binary_expr> ::= <expr> <binary_operator> <expr>
 
-<conditional>     ::= <bool_term> { "OU" <bool_term> }
+<binary_operator> ::= "+" | "-" | "*" | "/" | "%"
 
-<bool_term>       ::= <bool_factor> { "E" <bool_factor> }
+<primary_expr> ::= <number>
+               | <identifier>
+               | "(" <expr> ")"
+               | <object_expr>
+               | <call_expr>
+               | <array_expr>
 
-<bool_factor>     ::= <expression> <relational_operator> <expression>
+<object_expr> ::= "{" <property_list> "}"
 
-<relational_operator> ::= "==" | "!=" | "<" | "<=" | ">" | ">="
+<property_list> ::= <identifier> ":" <expr> ("," <identifier> ":" <expr>)*
 
-<number>          ::= [0-9]+
+<call_expr> ::= <identifier> "(" <arg_list> ")"
 
-<name>            ::= [a-zA-Z_][a-zA-Z0-9_]*
+<array_expr> ::= "[" <expr_list> "]"
 
-<string>          ::= '"' .* '"'
+<expr_list> ::= <expr> ("," <expr>)*
+
+<identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
+
+<number> ::= [0-9]+
+
+<FimArquivo> ::= ""
