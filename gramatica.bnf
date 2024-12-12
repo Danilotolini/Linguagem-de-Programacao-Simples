@@ -3,6 +3,7 @@
 <stmt> ::= <var_declaration>
         | <fn_declaration>
         | <expr_stmt>
+        | <loop_stmt>
 
 <var_declaration> ::= "let" <identifier> "=" <expr> ";"
                   | "const" <identifier> "=" <expr> ";"
@@ -14,6 +15,9 @@
 <arg_list> ::= <identifier> ("," <identifier>)*
 
 <expr_stmt> ::= <expr> ";"
+
+<loop_stmt> ::= "while" "(" <expr> ")" "{" <stmt>* "}"
+             | "for" "(" <var_declaration> <expr> ";" <expr_stmt> ")" "{" <stmt>* "}"
 
 <expr> ::= <assignment_expr>
         | <binary_expr>
