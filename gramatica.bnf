@@ -40,7 +40,7 @@
 
 <call_expr> ::= <identifier> "(" <arg_list> ")"
 
-<array_expr> ::= "[" <expr_list> "]"
+<array_expr> ::= "[" <expr_list> "]" 
 
 <expr_list> ::= <expr> ("," <expr>)*
 
