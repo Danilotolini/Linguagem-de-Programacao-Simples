@@ -6,9 +6,7 @@
         | <loop_stmt>
 
 <var_declaration> ::= "let" <identifier> "=" <expr> ";"
-                  | "const" <identifier> "=" <expr> ";"
                   | "let" <identifier> ";"
-                  | "const" <identifier> ";"
 
 <fn_declaration> ::= "fn" <identifier> "(" <arg_list> ")" "{" <stmt>* "}"
 
